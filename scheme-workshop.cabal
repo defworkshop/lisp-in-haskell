@@ -21,6 +21,7 @@ executable scheme-workshop
   -- other-extensions:
   build-depends:       base >=4.6 && <4.7,
                        parsec >= 2 && <3,
+                       transformers >= 0.4,
                        mtl >= 2.2
 
   hs-source-dirs:      src

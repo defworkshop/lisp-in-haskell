@@ -1,5 +1,15 @@
 module Language.WorkshopScheme.Interpreter where
 
+import Control.Monad
+import Control.Monad.Except
+import Control.Monad.Error.Class
+import Data.IORef
+import System.IO
+
+import Language.WorkshopScheme.AST
+import Language.WorkshopScheme.Primitives
+import Language.WorkshopScheme.Parser
+
 eval :: Env -> LispVal -> IOThrowsError LispVal
 eval env val@(String _)             = return val
 eval env val@(Number _)             = return val
@@ -72,10 +82,6 @@ apply (Macro params varargs body closure) args =
           Nothing -> return env
 apply badForm _ = throwError $ BadSpecialForm "Can't call apply on" badForm
 
-applyProc :: [LispVal] -> IOThrowsError LispVal
-applyProc [func, List args] = apply func args
-applyProc (func:args)       = apply func args
-
 isBound :: Env -> String -> IO Bool
 isBound envRef var = readIORef envRef >>= return . maybe False (const True) . lookup var
 
@@ -117,13 +123,8 @@ primitiveBindings =
     where makeF constructor (var, func) = (var, constructor func)
 
 
-liftThrows :: ThrowsError a -> IOThrowsError a
-liftThrows (Left err) = throwError err
-liftThrows (Right val) = return val
-
 runIOThrows :: IOThrowsError String -> IO String
-runIOThrows action = runErrorT (trapError action) >>= return . extractValue
-
+runIOThrows action = runExceptT (trapError action) >>= return . extractValue
 
 trapError action = catchError action (return . show)
 
@@ -136,3 +137,54 @@ makeVarargs = makeFunc . Just . showVal
 
 makeMacro :: Maybe String -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
 makeMacro varargs env params body = return $ Macro (map showVal params) varargs body env
+
+evalString :: Env -> String -> IO String
+evalString env expr = runIOThrows $ liftM show $ (liftThrows $ readExpr expr) >>= eval env
+
+evalAndPrint :: Env -> String -> IO ()
+evalAndPrint env expr = evalString env expr >>= putStrLn
+
+ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
+ioPrimitives = [("apply", applyProc),
+                ("open-input-file", makePort ReadMode),
+                ("open-output-file", makePort WriteMode),
+                ("close-input-port", closePort),
+                ("close-output-port", closePort),
+                ("read", readProc),
+                ("write", writeProc),
+                ("read-contents", readContents),
+                ("read-all", readAll)]
+
+makePort :: IOMode -> [LispVal] -> IOThrowsError LispVal
+makePort mode [String filename] = liftM Port $ liftIO $ openFile filename mode
+
+closePort :: [LispVal] -> IOThrowsError LispVal
+closePort [Port port] = liftIO $ hClose port >> (return $ Bool True)
+closePort _ = return $ Bool False
+
+readProc :: [LispVal] -> IOThrowsError LispVal
+readProc [] = readProc [Port stdin]
+readProc [Port port] = (liftIO $ hGetLine port) >>= liftThrows . readExpr
+
+writeProc :: [LispVal] -> IOThrowsError LispVal
+writeProc [obj] = writeProc [obj, Port stdout]
+writeProc [obj, Port port] = liftIO $ hPrint port obj >> (return $ Bool True)
+
+applyProc :: [LispVal] -> IOThrowsError LispVal
+applyProc [func, List args] = apply func args
+applyProc (func:args)       = apply func args
+
+readContents :: [LispVal] -> IOThrowsError LispVal
+readContents [String filename] = liftM String $ liftIO $ readFile filename
+
+load :: String -> IOThrowsError [LispVal]
+load filename = (liftIO $ readFile filename) >>= liftThrows . readExprList
+
+readAll :: [LispVal] -> IOThrowsError LispVal
+readAll [String filename] = liftM List $ load filename
+
+flushStr :: String -> IO ()
+flushStr str = putStr str >> hFlush stdout
+
+readPrompt :: String -> IO String
+readPrompt prompt = flushStr prompt >> getLine

@@ -1,13 +1,11 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Main where
 
--- import Control.Monad
--- import Control.Monad.Error
--- import System.Environment
--- import System.IO
--- import Data.IORef
--- import qualified Data.List as L
+import Control.Monad
+import System.Environment
+import System.IO
 
+import Language.WorkshopScheme.AST
 import Language.WorkshopScheme.Parser
 import Language.WorkshopScheme.Interpreter
 

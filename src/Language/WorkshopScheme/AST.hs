@@ -3,7 +3,8 @@ module Language.WorkshopScheme.AST where
 import qualified Data.List as L
 import           System.IO
 import           Data.IORef (IORef)
-import           Control.Monad.Error
+import           Control.Monad.Except
+import           Control.Monad.Error.Class ()
 import           Text.ParserCombinators.Parsec (ParseError)
 
 
@@ -13,7 +14,7 @@ type Env = IORef [(String, IORef LispVal)]
 
 type ThrowsError = Either LispError
 
-type IOThrowsError = ErrorT LispError IO
+type IOThrowsError = ExceptT LispError IO
 
 data LispVal = Atom String
              | List [LispVal]
@@ -77,6 +78,6 @@ instance Show LispVal where
 instance Show LispError where
   show = showError
 
--- instance Error LispError where
+-- instance MonadError LispError where
 --   noMsg  = Default "An error has occured"
 --   strMsg = Default
