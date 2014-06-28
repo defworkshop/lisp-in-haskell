@@ -1,5 +1,20 @@
 module Language.WorkshopScheme.AST where
 
+import qualified Data.List as L
+import           System.IO
+import           Data.IORef (IORef)
+import           Control.Monad.Error
+import           Text.ParserCombinators.Parsec (ParseError)
+
+
+-- FIXME: Having this in the AST seems *wrong*, but don't want to
+-- change for now.
+type Env = IORef [(String, IORef LispVal)]
+
+type ThrowsError = Either LispError
+
+type IOThrowsError = ErrorT LispError IO
+
 data LispVal = Atom String
              | List [LispVal]
              | DottedList [LispVal] LispVal
@@ -23,6 +38,9 @@ data LispError = NumArgs Integer [LispVal]
                | UnboundVar String String
                | Default String
 
+unwordsList :: [LispVal] -> String
+unwordsList = unwords . map showVal
+
 showVal :: LispVal -> String
 showVal (String contents) = "\"" ++ contents ++ "\""
 showVal (Atom name) = name
@@ -45,19 +63,20 @@ showVal (Macro {params = args, vararg = varargs, body = body, closure = env}) =
 showVal (IOFunc _) = "<IO primitive>"
 showVal (Port _)   = "<IO port>"
 
-instance Show LispVal where show = showVal
+showError :: LispError -> String
+showError (UnboundVar message varname)  = message ++ ": " ++ varname
+showError (BadSpecialForm message form) = message ++ ": " ++ show form
+showError (NotFunction message func)    = message ++ ": " ++ func
+showError (NumArgs expected found)      = "Expected " ++ show expected ++ " args; found values " ++ unwordsList found
+showError (TypeMismatch expected found) = "Invalid type: expected " ++ expected ++ ", found " ++ show found
+showError (Parser parseErr)             = "Parse error at " ++ show parseErr
 
+instance Show LispVal where
+  show = showVal
 
 instance Show LispError where
-  show (UnboundVar message varname)  = message ++ ": " ++ varname
-  show (BadSpecialForm message form) = message ++ ": " ++ show form
-  show (NotFunction message func)    = message ++ ": " ++ func
-  show (NumArgs expected found)      = "Expected " ++ show expected ++ " args; found values " ++ unwordsList found
-  show (TypeMismatch expected found) = "Invalid type: expected " ++ expected ++ ", found " ++ show found
-  show (Parser parseErr)             = "Parse error at " ++ show parseErr
+  show = showError
 
-instance Error LispError where
-  noMsg  = Default "An error has occured"
-  strMsg = Default
-
-type ThrowsError = Either LispError
+-- instance Error LispError where
+--   noMsg  = Default "An error has occured"
+--   strMsg = Default

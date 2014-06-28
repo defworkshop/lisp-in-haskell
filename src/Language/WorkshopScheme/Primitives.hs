@@ -1,5 +1,7 @@
 module Language.WorkshopScheme.Primitives where
 
+import Language.WorkshopScheme.AST
+
 makePort :: IOMode -> [LispVal] -> IOThrowsError LispVal
 makePort mode [String filename] = liftM Port $ liftIO $ openFile filename mode
 

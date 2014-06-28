@@ -1,5 +1,8 @@
 module Language.WorkshopScheme.Parser where
 
+import Text.ParserCombinators.Parsec hiding (spaces)
+import Language.WorkshopScheme.AST
+
 symbol :: Parser Char
 symbol = oneOf "!$%&|*+-/:<=?>@^_~#"
 
@@ -70,7 +73,6 @@ parseUnquoted = do
 
 parseChar :: Parser LispVal
 parseChar = char '\\' >> (letter <|> digit <|> symbol) >>= return . Char
---  return $ Char x
 
 parseExpr :: Parser LispVal
 parseExpr = parseAtom
@@ -82,6 +84,3 @@ parseExpr = parseAtom
                    x <- (try parseList) <|> parseDottedList
                    char ')'
                    return x
-
-unwordsList :: [LispVal] -> String
-unwordsList = unwords . map showVal
