@@ -16,7 +16,6 @@ executable scheme-workshop
   main-is:             Scheme.hs
   other-modules:       Language.WorkshopScheme.AST,
                        Language.WorkshopScheme.Parser,
-                       Language.WorkshopScheme.Primitives,
                        Language.WorkshopScheme.Interpreter
   -- other-extensions:
   build-depends:       base >=4.6 && <4.7,
