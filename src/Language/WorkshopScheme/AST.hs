@@ -1,6 +1,7 @@
 module Language.WorkshopScheme.AST where
 
 import qualified Data.List as L
+import qualified Data.Map as M
 import           System.IO
 import           Data.IORef (IORef)
 import           Control.Monad.Except
@@ -8,9 +9,7 @@ import           Control.Monad.Error.Class ()
 import           Text.ParserCombinators.Parsec (ParseError)
 
 
--- FIXME: Having this in the AST seems *wrong*, but don't want to
--- change for now.
-type Env = IORef [(String, IORef LispVal)]
+type Env = IORef (M.Map String (IORef LispVal))
 
 type ThrowsError = Either LispError
 

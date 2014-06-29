@@ -1,11 +1,13 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Language.WorkshopScheme.Interpreter where
 
-import Control.Monad
-import Control.Monad.Except
-import Control.Monad.Error.Class
-import Data.IORef
-import System.IO
+import           Control.Monad
+import           Control.Monad.Except
+import           Control.Monad.Error.Class
+import qualified Data.Map as M
+import           Data.Maybe (isJust)
+import           Data.IORef
+import           System.IO
 
 import Language.WorkshopScheme.AST
 import Language.WorkshopScheme.Parser
@@ -83,17 +85,19 @@ apply (Macro params varargs body closure) args =
 apply badForm _ = throwError $ BadSpecialForm "Can't call apply on" badForm
 
 isBound :: Env -> String -> IO Bool
-isBound envRef var = readIORef envRef >>= return . maybe False (const True) . lookup var
+isBound envRef var = do
+  env <- readIORef envRef
+  return $ isJust $ M.lookup var env
 
 getVar :: Env -> String -> IOThrowsError LispVal
 getVar envRef var = do env <- liftIO $ readIORef envRef
                        maybe (throwError $ UnboundVar "Getting an unbound variable" var)
-                         (liftIO . readIORef) (lookup var env)
+                         (liftIO . readIORef) (M.lookup var env)
 
 setVar :: Env -> String -> LispVal -> IOThrowsError LispVal
 setVar envRef var value = do env <- liftIO $ readIORef envRef
                              maybe (throwError $ UnboundVar "Setting an unbound variable" var)
-                               (liftIO . (flip writeIORef value)) (lookup var env)
+                               (liftIO . (flip writeIORef value)) (M.lookup var env)
                              return value
 
 defineVar :: Env -> String -> LispVal -> IOThrowsError LispVal
@@ -104,17 +108,21 @@ defineVar envRef var value = do
     else liftIO $ do
         valueRef <- newIORef value
         env <- readIORef envRef
-        writeIORef envRef ((var, valueRef) : env)
+        writeIORef envRef (M.insert var valueRef env)
         return value
 
 bindVars :: Env -> [(String, LispVal)] -> IO Env
-bindVars envRef bindings = readIORef envRef >>= extendEnv bindings >>= newIORef
-  where extendEnv bindings env = liftM (++ env) (mapM addBinding bindings)
-        addBinding (var, value) = do ref <- newIORef value
-                                     return (var, ref)
+bindVars envRef bindings = do
+  env <- readIORef envRef
+  env' <- extendEnv bindings env
+  newIORef env'
+  where
+    extendEnv bindings env = foldM addBinding env bindings
+    addBinding env (var, value) = do ref <- newIORef value
+                                     return (M.insert var ref env)
 
 nullEnv :: IO Env
-nullEnv = newIORef []
+nullEnv = newIORef M.empty
 
 primitiveBindings :: IO Env
 primitiveBindings =

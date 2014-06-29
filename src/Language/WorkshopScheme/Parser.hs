@@ -3,7 +3,6 @@ module Language.WorkshopScheme.Parser where
 import Text.ParserCombinators.Parsec hiding (spaces)
 import Control.Monad.Except
 import Control.Monad.IO.Class
-
 import Language.WorkshopScheme.AST
 
 symbol :: Parser Char
