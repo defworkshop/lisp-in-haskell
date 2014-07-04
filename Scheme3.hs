@@ -96,7 +96,7 @@ evalFunc fun env args =
   case M.lookup fun env of
        Nothing -> error $ "unknown function " ++ fun ++ " in " ++ show env
        Just (Fun params closure ast) ->
-         let env' = M.fromList $ zip params args 
+         let env' = M.fromList $ zip params args
              env'' = M.unions [env', closure, env]
          in eval env'' ast
 
@@ -118,7 +118,7 @@ eval env (List (Atom "if" : cond : th : el : [])) =
           Boolean True -> eval env th
           Boolean False -> eval env el
           _ -> error $ "condition in if-expression must evaluate to boolean"
- 
+
 eval env (Atom a)                         =
      case M.lookup a env of
           Just x -> x
