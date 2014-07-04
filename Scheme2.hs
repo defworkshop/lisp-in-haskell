@@ -16,6 +16,10 @@ data LispVal = Atom String
              | Boolean Bool
              deriving Show
 
+
+----------------------------------------------------------------------
+-- A simple parser definition using Parsec
+----------------------------------------------------------------------
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+/:<=>?@^_~-"
 
@@ -41,10 +45,12 @@ parseLispVal =  parseTrue
             <|> parseNumber
             <|> parseList
 
+
 parser :: String -> LispVal
 parser s = case parse parseLispVal "lisp" s of
   Right v -> v
   Left err -> error $ show err
+
 
 eval :: LispVal -> LispVal
 eval (Atom a)                         = Atom a
@@ -62,6 +68,7 @@ primitives = [("+", foldr (\(Number n) (Number acc) -> Number (acc+n)) (Number 0
              ,(">", lispCmp ">" (>))
              ]
 
+
 lispCmp :: String -> (Integer -> Integer -> Bool) -> [LispVal] -> LispVal
 lispCmp nm _ []                           = error $ "'" ++ nm ++ "' needs at least one argument"
 lispCmp nm cmp (Number n : [])              = Boolean True
@@ -74,6 +81,7 @@ pprint (Number n)  = show n
 pprint (Boolean b) = if b then "#t" else "#f"
 pprint (List l)    = "(" ++ L.intercalate " " (map pprint l) ++ ")"
 
+
 main :: IO ()
 main = do putStr "lisp> "
           hFlush stdout
@@ -82,3 +90,14 @@ main = do putStr "lisp> "
             then return ()
             else do putStrLn $ pprint $ eval $ parser input
                     main
+
+----------------------------------------------------------------------
+-- Exercise 4: Introduce a type definiton for 'Env' to represent an
+-- environment using Data.Map
+----------------------------------------------------------------------
+
+----------------------------------------------------------------------
+-- Exercise 5: Extend 'eval' such that it takes an environment and
+-- looks up variables within this environment if they are not found in
+-- 'primitives'
+----------------------------------------------------------------------
