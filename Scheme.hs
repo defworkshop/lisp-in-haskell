@@ -85,9 +85,8 @@ lispLess (Number n : Number m : rest) = if n < m
                                         else Boolean False
 
 ----------------------------------------------------------------------
--- Exercise 1: Implement the primitive '-'. This should be very
--- similar to '+'. Make sure the following expressions eval to the
--- correct results:
+-- Exercise 1: Implement the primitive '-'. Make sure the following
+-- expressions eval to the correct results:
 ----------------------------------------------------------------------
 lexpr_ex1_1 = List [minus, _5, _3]                                    -- (Number 2)
 lexpr_ex1_2 = List [minus, _3, _1, _1, _1]                            -- (Number 0)
@@ -97,7 +96,7 @@ lexpr_ex1_3 = List [minus, List [minus, _5, _1], List [plus, _3, _2]] -- Number 
 ----------------------------------------------------------------------
 -- Exercise 2: Implement the primitive '>'. This should be very
 -- similar to '<'. Make sure the following expressions eval to the
--- correct results:
+-- correct results. Can you abstract the common parts out?
 ----------------------------------------------------------------------
 lexpr_ex2_1 = List [greater, _5, _1]     -- (Boolean True)
 lexpr_ex2_2 = List [greater, _2, _4]     -- (Boolean False)
