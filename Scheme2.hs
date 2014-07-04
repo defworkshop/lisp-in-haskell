@@ -52,6 +52,9 @@ parser s = case parse parseLispVal "lisp" s of
   Left err -> error $ show err
 
 
+----------------------------------------------------------------------
+-- eval and prmitives are like before
+----------------------------------------------------------------------
 eval :: LispVal -> LispVal
 eval (Atom a)                         = Atom a
 eval (Number n)                       = Number n
@@ -75,6 +78,9 @@ lispCmp nm cmp (Number n : [])              = Boolean True
 lispCmp nm cmp (Number n : Number m : rest) = if cmp n m then lispCmp nm cmp (Number m : rest) else Boolean False
 
 
+----------------------------------------------------------------------
+-- the pretty print function from last time
+----------------------------------------------------------------------
 pprint :: LispVal -> String
 pprint (Atom a)    = a
 pprint (Number n)  = show n
@@ -82,6 +88,9 @@ pprint (Boolean b) = if b then "#t" else "#f"
 pprint (List l)    = "(" ++ L.intercalate " " (map pprint l) ++ ")"
 
 
+----------------------------------------------------------------------
+-- our REPL
+----------------------------------------------------------------------
 main :: IO ()
 main = do putStr "lisp> "
           hFlush stdout
