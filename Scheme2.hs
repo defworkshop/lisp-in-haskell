@@ -101,12 +101,12 @@ main = do putStr "lisp> "
                     main
 
 ----------------------------------------------------------------------
--- Exercise 4: Introduce a type definiton for 'Env' to represent an
+-- Exercise 2-1: Introduce a type definiton for 'Env' to represent an
 -- environment using Data.Map
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
--- Exercise 5: Extend 'eval' such that it takes an environment and
+-- Exercise 2-2: Extend 'eval' such that it takes an environment and
 -- looks up variables within this environment if they are not found in
 -- 'primitives'
 ----------------------------------------------------------------------
