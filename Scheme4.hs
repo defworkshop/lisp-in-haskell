@@ -7,14 +7,12 @@ import Text.ParserCombinators.Parsec.Error
 import qualified Text.Parsec.Token as P
 import Text.Parsec.Language
 
-data LispExpression = LispSymbol String |
-                      LispKeyword String |
-                      LispList [LispExpression] |
-                      LispNumber Integer |
-                      LispString String |
-                      LispBool Bool |
-                      LispError String |
-                      LispNil
+data LispVal = Atom String
+     | LispList [LispVal]
+     | Number Integer
+     | String String
+     | Boolean Bool
+     | LispNil
      deriving(Show)
 
 symbols :: Parser Char
@@ -38,53 +36,53 @@ lexeme = P.lexeme lexer
 
 
 
-parseTrue :: Parser LispExpression
+parseTrue :: Parser LispVal
 parseTrue = do
   void $ try (string "true")
-  return $ LispBool True
+  return $ Boolean True
 
-parseFalse :: Parser LispExpression
+parseFalse :: Parser LispVal
 parseFalse = do
   void $ try (string "false")
-  return $ LispBool False
+  return $ Boolean False
 
 
 
 
-parseString :: Parser LispExpression
+parseString :: Parser LispVal
 parseString = do _ <- char '"'
                  x <- many (noneOf "\"")
                  _ <- char '"'
-                 return $ LispString x
+                 return $ String x
 
-parseKeyword :: Parser LispExpression
+parseKeyword :: Parser LispVal
 parseKeyword = do _ <- char ':'
                   x <- many alphaNum
-                  return $ LispString x
+                  return $ String x
 
 
-parseNumber :: Parser LispExpression
+parseNumber :: Parser LispVal
 parseNumber = do
   _ <- try (many (string "#d"))
   sign <- many (oneOf "-")
   num <- many1 (digit)
   if (length sign) > 1
     then pzero
-    else return $ (LispNumber . read) $ sign ++ num
+    else return $ (Number . read) $ sign ++ num
 
 
-parseSymbol :: Parser LispExpression
+parseSymbol :: Parser LispVal
 parseSymbol = do
   first <- letter <|> symbols
   rest <- many (letter <|> digit <|> symbols)
   let symbol = first:rest
-  return $ LispSymbol symbol
+  return $ Atom symbol
 
-parseList :: Parser LispExpression
-parseList = liftM LispList $ sepBy parseLispExpression whiteSpace
+parseList :: Parser LispVal
+parseList = liftM LispList $ sepBy parseLispVal whiteSpace
 
-parseLispExpression :: Parser LispExpression
-parseLispExpression = parseTrue <|>
+parseLispVal :: Parser LispVal
+parseLispVal = parseTrue <|>
                       parseFalse <|>
                       parseKeyword <|>
                       parseSymbol <|>
@@ -92,5 +90,5 @@ parseLispExpression = parseTrue <|>
                       parseString <|>
                       parens parseList
 
-
--- parse parseLispExpression "lisp" "(a 1 1)"
+-- parse parseLispVal "lisp" "(a 1 1)"
+-- parse parseLispVal "lisp" "(a \"asd\" true 1)"
