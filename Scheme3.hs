@@ -81,13 +81,13 @@ symbol :: Parser Char
 symbol = oneOf "!#$%&|*+/:<=>?@^_~-"
 
 parseTrue :: Parser LispVal
-parseTrue = string "#t" *> pure (Boolean True)
+parseTrue = try (string "#t") *> pure (Boolean True)
 
 parseFalse :: Parser LispVal
-parseFalse = string "#f" *> pure (Boolean False)
+parseFalse = try (string "#f") *> pure (Boolean False)
 
 parseNil :: Parser LispVal
-parseNil = string "nil" *> pure Nil
+parseNil = try (string "nil") *> pure Nil
 
 parseAtom :: Parser LispVal
 parseAtom = Atom <$> ((:) <$> (letter <|> symbol) <*> many (letter <|> digit <|> symbol))
