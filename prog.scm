@@ -1,3 +1,3 @@
-(setf a 3)
-(setf b 5)
-(setf f (lambda (x y z) (+ x y z)))
+(setf fib (lambda (n) (if (< n 2) 1
+                          (+ (fib (- n 2)) (fib (- n 1))))))
+(fib 5)
