@@ -53,11 +53,6 @@ eval env (List (Atom a: args))            =
           Nothing -> error $ "Unknown form: " ++ a
           Just f -> (env, f $ map (snd . eval env) args)
 
-eval env (List (Atom a: args))            =
-     case lookup a primitives of
-          Nothing -> error $ "Unknown form: " ++ a
-          Just f -> (env, f $ map (snd . eval env) args)
-
 eval env val                              = error $ "Unknown form: " ++ pprint val
 
 
@@ -73,7 +68,7 @@ pprint (Atom a)    = a
 pprint (Number n)  = show n
 pprint (Boolean b) = if b then "#t" else "#f"
 pprint (List l)    = "(" ++ L.intercalate " " (map pprint l) ++ ")"
-pprint (Boolean b) = "nil"
+pprint Nil         = "nil"
 
 showProgram = putStrLn . L.intercalate "\n" . map pprint
 
@@ -84,9 +79,6 @@ showProgram = putStrLn . L.intercalate "\n" . map pprint
 ----------------------------------------------------------------------
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+/:<=>?@^_~-"
-
-whiteSpace :: Parser String
-whiteSpace = many (oneOf " \t\n\r")
 
 parseTrue :: Parser LispVal
 parseTrue = string "#t" *> pure (Boolean True)

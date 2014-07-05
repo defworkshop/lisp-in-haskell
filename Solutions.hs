@@ -96,9 +96,6 @@ showProgram = putStrLn . L.intercalate "\n" . map pprint
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+/:<=>?@^_~-"
 
-whiteSpace :: Parser String
-whiteSpace = many (oneOf " \t\n\r")
-
 parseTrue :: Parser LispVal
 parseTrue = try (string "#t") *> pure (Boolean True)
 
