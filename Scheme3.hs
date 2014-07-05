@@ -36,7 +36,7 @@ eval env (Boolean b)                      = (env, Boolean b)
 
 eval env (Atom a)                         =
      case M.lookup a env of
-          Just x -> (env, x)
+          Just x ->  (env, x)
           Nothing -> error $ "Variable " ++ a ++ " not found in " ++ show env
 
 eval env (List [Atom "let", List bindings, body]) =
@@ -130,7 +130,7 @@ repl env = do
   input <- getLine
   if input == "quit"
     then return ()
-    else do let (env', val) = eval env' $ exprParser input
+    else do let (env', val) = eval env $ exprParser input
             putStrLn $ pprint $ val
             repl env'
 

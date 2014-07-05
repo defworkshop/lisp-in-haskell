@@ -146,7 +146,7 @@ repl env = do
   input <- getLine
   if input == "quit"
     then return ()
-    else do let (env', val) = eval env' $ exprParser input
+    else do let (env', val) = eval env $ exprParser input
             putStrLn $ pprint $ val
             repl env'
 
